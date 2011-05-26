@@ -1,0 +1,849 @@
+********************************************************************************
+*                                                                              *
+* Note:  This is the FLEXPART-WRF version of file includecom                   *
+*                                                                              *
+*        Include file for particle diffusion model FLEXPART                    *
+*        This file contains a global common block used by FLEXPART             *
+*                                                                              *
+*        Author: A. Stohl                                                      *
+*                                                                              *
+*        June 1996                                                             *
+*        Last update: 9 August 2000                                            *
+*                                                                              *
+* changes by R. Easter & J. Fast for WRF version, Oct-Dec 2005                 *
+*   wfname, wfnamen changed from char*11 to char*80                            *
+*   xmet0, ymet0, xmet0n, ymet0n added                                         *
+*   m_grid_id, m_parent_grid_id, m_parent_grid_ratio,                          *
+*       i_parent_start, j_parent_start added                                   *
+*   eta_w_wrf, eta_u_wrf, p_top_wrf added                                      *
+*   x dimension for uu, uun changed to 0:nxmax                                 *
+*   y dimension for vv, vvn changed to 0:nymax                                 *
+*   pph, pphn, zzh, zzhn added                                                 *
+*   xlon2d, ylat2d,xlon2dn, ylat2dn added                                      *
+*   augment_nuvz added                                                         *
+*   x dimension for uu, uun changed back to 0:nxmax-1                          *
+*   y dimension for vv, vvn changed back to 0:nymax-1                          *
+*   turb_option added; augment_nuvz changed to add_sfc_level                   *
+*   xmet0, ymet0, xmet0n, ymet0n removed                                       *
+*   l_parent_nest_id added                                                     *
+*   akm,bkm, akz,bkz, aknew,bknew deleted - they shouldn't be used with WRF    *
+*   method_w_terrain_correction added                                          *
+*   map_proj_id, map_stdlon, map_truelat1, map_truelat2 added                  *
+*   tthn,qvhn,pphn,zzhn - bug fix - was using nxmax,nymax; now nxmaxn,nymaxn   *
+*   map_proj_method added                                                      *
+*   outgrid_swlon,outgrid_swlat,outgrid_nelon,outgrid_nelat added              *
+*   outgridn_swlon,outgridn_swlat,outgridn_nelon,outgridn_nelat added          *
+*   receptor_lon,receptor_lat added                                            *
+*   releases_swlon,releases_swlat,releases_nelon,releases_nelat added          *
+*                                                                              *
+********************************************************************************
+
+
+
+*****************************************************************
+C Variables defining where FLEXPART input/output files are stored
+*****************************************************************
+
+      character path(numpath+2*maxnests)*120
+      integer len(numpath+2*maxnests)
+
+C path                    path names needed for trajectory model
+C len                     length of path names needed for trajectory model
+
+
+*********************************************************
+C Variables defining the general model run specifications
+*********************************************************
+
+      integer ibdate,ibtime,iedate,ietime
+      double precision bdate,edate
+
+
+C ibdate                  beginning date (YYYYMMDD)
+C ibtime                  beginning time (HHMISS)
+C iedate                  ending date (YYYYMMDD)
+C ietime                  ending time (HHMISS)
+C bdate                   beginning date of simulation (julian date)
+C edate                   ending date of simulation (julian date)
+
+
+      integer ldirect,ideltas
+
+C ldirect                 1 for forward, -1 for backward simulation
+C ideltas                 length of trajectory loop from beginning to
+C                         ending date (s)
+
+      integer loutstep,loutaver,loutsample,method,lsynctime
+      real outstep
+
+C loutstep [s]            gridded concentration output every loutstep seconds
+C loutaver [s]            concentration output is an average over [s] seconds
+C loutsample [s]          sampling interval of gridded concentration output
+C lsynctime [s]           synchronisation time of all particles
+C method                  indicator which dispersion method is to be used
+C outstep = float(abs(loutstep))
+
+      real ctl,fine
+      integer ifine,iout,ipout,ipin,iflux,mdomainfill
+      integer mquasilag,nested_output,ind_source,ind_receptor
+      integer ind_rel,ind_samp
+      integer turb_option, method_w_terrain_correction
+      integer sfc_option
+      integer iouttype
+      logical turbswitch
+
+C ctl      factor, by which time step must be smaller than Lagrangian time scale
+C ifine    reduction factor for time step used for vertical wind
+C          Langevin equation for the vertical wind component
+C iflux    flux calculation options: 1 calculation of fluxes, 2 no fluxes
+C iout     output options: 1 conc. output (ng/m3), 2 mixing ratio (pptv), 3 both
+C ipout    particle dump options: 0 no, 1 every output interval, 2 only at end
+C ipin     read in particle positions from dumped file from a previous run
+C fine     float(ifine)
+C mdomainfill 0: normal run
+C             1: particles are initialized according to atmospheric mass distribution
+C ind_source switches between different units for concentrations at the source     
+C  NOTE that in backward simulations the release of computational particles 
+C  takes place at the "receptor" and the sampling of particles at the "source".
+C          1= mass units 
+C          2= mass mixing ratio units 
+C ind_receptor switches between different units for FLEXPART concentration at the receptor
+C          1= mass units
+C          2= mass mixing ratio units
+C mquasilag 0: normal run
+C           1: Particle position output is produced in a condensed format and particles are numbered
+C nested_output: 0 no, 1 yes
+C turbswitch              determines how the Markov chain is formulated
+C turb_option determines how turbulent velocity components are computed
+C          0 = turb_option_none      -- turbulent velocity is set to zero
+C          1 = turb_option_diagnosed -- turbulent is diagnosed using flexpart_ecmwf approach
+C          2 = turb_option_tke       -- turbulent is computed from tke
+C method_w_terrain_correction determines how the w terrain correction is applied
+C     (See comments in verttransform.f)
+C sfc_option determines how select surface values are computed
+C          0 = sfc_option_diagnosed  -- default method of computing u*, hflux, and pblh
+C          1 = sfc_option_wrf        -- u*, hflux, and pblh read in from WRF
+C iouttype determines binary or ascii output
+C          0 = binary output
+C          1 = ascii output
+
+C ind_rel and ind_samp  are used within the code to change between mass and mass-mix (see readcommand.f)
+
+
+      integer mintime,itsplit
+
+C mintime                 minimum time step to be used by FLEXPART
+C itsplit                 time constant for splitting particles
+
+      integer lsubgrid,lconvection,lagespectra
+
+C lsubgrid     1 if subgrid topography parameterization switched on, 2 if not
+C lconvection  1 if convection parameterization switched on, 0 if not
+C lagespectra  1 if age spectra calculation switched on, 2 if not
+
+
+      integer nageclass,lage(maxageclass)
+
+C nageclass               number of ageclasses for the age spectra calculation
+C lage [s]                ageclasses for the age spectra calculation
+
+
+      logical gdomainfill
+
+C gdomainfill             .T., if domain-filling is global, .F. if not
+
+
+
+**********************************************************************
+C Variables defining the release locations, released species and their
+C properties, etc.
+**********************************************************************
+
+      character compoint(maxpoint)*45
+      integer numpoint,ireleasestart(maxpoint),ireleaseend(maxpoint)
+      real xpoint1(maxpoint),ypoint1(maxpoint)
+      real xpoint2(maxpoint),ypoint2(maxpoint)
+      real zpoint1(maxpoint),zpoint2(maxpoint)
+      real releases_swlon(maxpoint),releases_swlat(maxpoint)
+      real releases_nelon(maxpoint),releases_nelat(maxpoint)
+      integer kindz(maxpoint)
+      real xmass(maxpoint,maxspec),decay(maxspec)
+      real weta(maxspec),wetb(maxspec)
+      real reldiff(maxspec),henry(maxspec),f0(maxspec)
+      real density(maxspec),dquer(maxspec),dsigma(maxspec)
+      real vsetaver(maxspec),weightmolar(maxspec)
+      real vset(maxspec,ni),schmi(maxspec,ni),fract(maxspec,ni)
+      real ri(5,numclass),rac(5,numclass),rcl(maxspec,5,numclass)
+      real rgs(maxspec,5,numclass),rlu(maxspec,5,numclass)
+      real rm(maxspec),dryvel(maxspec)
+
+      real area_hour(maxspec,24),point_hour(maxspec,24)
+      real area_dow(maxspec,7),point_dow(maxspec,7)
+   
+      integer npart(maxpoint)
+      integer nspec,link(maxspec)
+      character*10 species(maxspec)
+
+
+C compoint                comment, also "name" of each starting point
+C numpoint                actual number of trajectory starting/ending points
+C ireleasestart,ireleaseend [s] starting and ending time of each release
+C xmass                   total mass emitted
+C xpoint1,ypoint1         lower left coordinates of release area in grid-meters
+C xpoint2,ypoint2         upper right coordinates of release area in grid-meters
+C zpoint1,zpoint2         min./max. z-coordinates of release points
+C releases_swlon,releases_swlat -- lower left  coordinates of release area in degrees lon/lat
+C releases_nelon,releases_nelat -- upper right coordinates of release area in degrees lon/lat
+C kindz                   1: zpoint is in m agl, 2: zpoint is in m asl
+C npart                   number of particles per release point
+C nspec                   number of different species allowed for one release
+C species                 name of species
+C link                    index referring each species to the species table
+C decay                   decay constant of radionuclide
+
+C WET DEPOSITION
+C weta, wetb              parameters for determining wet scavenging coefficients
+
+C GAS DEPOSITION
+C reldiff                 diffusivitiy of species relative to diff. of H2O
+C henry [M/atm]           Henry constant
+C f0                      reactivity relative to that of O3
+C ri [s/m]                stomatal resistance
+C rcl [s/m]               lower canopy resistance
+C rgs [s/m]               ground resistance
+C rlu [s/m]               leaf cuticular resistance
+C rm [s/m]                mesophyll resistance
+C dryvel [m/s]            constant dry deposition velocity
+
+C PARTICLE DEPOSITION
+C density [kg/m3]         density of particles
+C dquer [m]               mean diameter of particles
+C dsigma                  dsigma=10 or dsigma=0.1 means that 68% of the
+C                         mass are between 0.1*dquer and 10*dquer
+
+C fract                   mass fraction of each diameter interval
+C vset [m/s]              gravitational settling velocity in ni intervals
+C vsetaver [m/s]          average gravitational settling velocity
+C schmi                   Schmidt number**2/3 of each diameter interval
+C weightmolar [g/mol]     molecular weight
+
+C TIME VARIATION OF EMISSION
+C area_hour, point_hour   daily variation of emission strengths for area and point sources
+C area_dow, point_dow     day-of-week variation of emission strengths for area and point sources
+
+
+
+***********************************************************
+C Variables used for domain-filling trajectory calculations
+***********************************************************
+
+      integer nx_we(2),ny_sn(2)
+      integer numcolumn
+      integer numcolumn_we(2,0:nymax-1),numcolumn_sn(2,0:nxmax-1)
+      real zcolumn_we(2,0:nymax-1,maxcolumn)
+      real zcolumn_sn(2,0:nxmax-1,maxcolumn)
+      real xmassperparticle
+      real acc_mass_we(2,0:nymax-1,maxcolumn)
+      real acc_mass_sn(2,0:nxmax-1,maxcolumn)
+
+C nx_we(2)                x indices of western and eastern boundary of domain-filling
+C ny_sn(2)                y indices of southern and northern boundary of domain-filling
+C numcolumn_we            number of particles to be released within one column
+C                         at the western and eastern boundary surfaces
+C numcolumn_sn            same as numcolumn_we, but for southern and northern domain boundary
+C numcolumn               maximum number of particles to be released within a single
+C                         column
+C zcolumn_we              altitudes where particles are to be released
+C                         at the western and eastern boundary surfaces
+C zcolumn_sn              same as zcolumn_we, but for southern and northern domain boundary
+C xmassperparticle        air mass per particle in the domain-filling traj. option
+C acc_mass_we             mass that has accumulated at the western and eastern boundary;
+C                         if it exceeds xmassperparticle, a particle is released and
+C                         acc_mass_we is reduced accordingly
+C acc_mass_sn             same as acc_mass_we, but for southern and northern domain boundary
+
+
+
+*******************************************************************************
+C Variables associated with the ECMWF meteorological input data ("wind fields")
+*******************************************************************************
+
+      integer numbwf,wftime(maxwf),lwindinterv
+c     character*11 wfname(maxwf),wfspec(maxwf)
+      character*11 wfspec(maxwf)
+      character*80 wfname(maxwf)
+
+C lwindinterv [s]         Interval between wind fields currently in memory
+C numbwf                  actual number of wind fields
+C wftime(maxwf) [s]       times relative to beginning time of wind fields
+C wfname(maxwf)           file names of wind fields
+C wfspec(maxwf)           specifications of wind field file, e.g. if on hard 
+C                         disc or on tape
+
+      integer memtime(2),memind(2)
+
+C memtime [s]             validation times of wind fields in memory
+C memind                  pointer to wind field, in order to avoid shuffling
+C                         of wind fields
+
+
+
+*****************************************************************************
+C Variables defining actual size and geographical location of the wind fields
+*****************************************************************************
+
+      integer nx,ny,nxmin1,nymin1,nxfield,nuvz,nwz,nz,nmixz,nlev_ec
+      integer add_sfc_level
+      integer map_proj_id, map_proj_method
+      real dx,dy,xlon0,ylat0,dxconst,dyconst,height(nzmax)
+      real xlon2d(0:nxmax-1,0:nymax-1),ylat2d(0:nxmax-1,0:nymax-1)
+      real map_stdlon, map_truelat1, map_truelat2
+
+C nx,ny,nz                actual dimensions of wind fields in x,y and z
+C                         direction, respectively
+C nxmin1,nymin1           nx-1, ny-1, respectively
+C nuvz,nwz                vertical dimension of original ECMWF data
+C nxfield                 same as nx for limited area fields,
+C                         but for global fields nx=nxfield+1
+C nmixz                   number of levels up to maximum PBL height (3500 m)
+C add_sfc_level           1 if U, V, T levels are augmented with an additional
+C                             level at the surface, using 10 m winds and 2 m temp
+C                         0 otherwise
+C                         (This extra level is always added in FLEXPART_ECMWF,
+C                         but often is not appropriate with WRF.)
+
+C nuvz is used for u,v components
+C nwz is used for w components (staggered grid)
+C nz is used for the levels in transformed coordinates (terrain-following Cartesian
+C coordinates)
+
+C nlev_ec  number of levels ECMWF model
+C dx                      grid distance in x direction
+C dy                      grid distance in y direction
+C                     *** in WRF version, dx,dy are map-projection distances 
+C                             in meters
+C dxconst,dyconst         auxiliary variables for utransform,vtransform
+C height                  heights of all levels
+C
+C xlon0               *** in FLEXPART_ECMWF, xlon0 & ylat0 are the geographical 
+C ylat0                       longitude & latitude of lower left grid point
+C                     *** in WRF version, xlon0 & ylat0 are the x,y coords (in meters) 
+C                             of lower left "T-grid" point of outermost (mother) grid
+C
+C xlon2d                  geographical lon,lat (degrees) at "T-grid" points
+C ylat2d                      of the outermost grid
+C
+C map_proj_id             WRF map projection id
+C map_stdlon              map projection standard longitude
+C map_truelat1 & 2        map projection true latitudes
+C map_proj_method         1 if map_proj_wrf_subaa.f routines are used for 
+C                             x,y<-->lat,lon
+C                         0 if interpolation of xlon2d,ylat2d is used
+
+
+
+**************************************************
+C Variables used for vertical model discretization
+**************************************************
+
+c     real akm(nwzmax),bkm(nwzmax)
+c     real akz(nuvzmax),bkz(nuvzmax)
+c     real aknew(nzmax),bknew(nzmax)
+      real eta_w_wrf(nzmax), eta_u_wrf(nzmax), p_top_wrf
+
+* akm,bkm: coeffizients which regulate vertical discretization of ecmwf model
+*          (at the border of model layers)
+* akz,bkz: model discretization coeffizients at the centre of the layers
+* aknew,bknew model discretization coeffizients at the interpolated levels
+* eta_w_wrf, eta_u_wrf, p_top_wrf: coefficients which 
+*          regulate vertical discretization of wrf model
+
+
+
+C Fixed fields, unchangeable with time
+**************************************
+
+      real oro(0:nxmax-1,0:nymax-1)
+      real excessoro(0:nxmax-1,0:nymax-1)
+      real lsm(0:nxmax-1,0:nymax-1)
+      real xlanduse(0:nxmax-1,0:nymax-1,numclass)
+
+C oro [m]              orography of the ECMWF model
+C excessoro            excess orography mother domain
+C lsm                  land sea mask of the ECMWF model
+C xlanduse [0-1]       area fractions of landuse classes
+
+
+C 3d fields
+***********
+
+      real uu(0:nxmax-1,0:nymax-1,nzmax,2)
+      real vv(0:nxmax-1,0:nymax-1,nzmax,2)
+      real uupol(0:nxmax-1,0:nymax-1,nzmax,2)
+      real vvpol(0:nxmax-1,0:nymax-1,nzmax,2)
+      real ww(0:nxmax-1,0:nymax-1,nzmax,2)
+      real tt(0:nxmax-1,0:nymax-1,nzmax,2)
+      real qv(0:nxmax-1,0:nymax-1,nzmax,2)
+      real pv(0:nxmax-1,0:nymax-1,nzmax,2)
+      real rho(0:nxmax-1,0:nymax-1,nzmax,2)
+      real drhodz(0:nxmax-1,0:nymax-1,nzmax,2)
+      real tth(0:nxmax-1,0:nymax-1,nuvzmax,2)
+      real qvh(0:nxmax-1,0:nymax-1,nuvzmax,2)
+      real pph(0:nxmax-1,0:nymax-1,nuvzmax,2)
+      real zzh(0:nxmax-1,0:nymax-1,nwzmax+1,2)
+
+C uu,vv,ww [m/2]       wind components in x,y and z direction
+C uupol,vvpol [m/s]    wind components in polar stereographic projection
+C tt [K]               temperature data
+C qv                   specific humidity data
+C pv (pvu)             potential vorticity
+C rho [kg/m3]          air density
+C drhodz [kg/m2]       vertical air density gradient
+C tth,qvh              tth,qvh on original eta levels
+C pph                  pressure (Pa) on original wrf "T-grid" levels
+C zzh                  height (m MSL) on original wrf "W-grid" levels
+
+C 2d fields
+***********
+
+      real ps(0:nxmax-1,0:nymax-1,1,2)
+      real sd(0:nxmax-1,0:nymax-1,1,2)
+      real msl(0:nxmax-1,0:nymax-1,1,2)
+      real tcc(0:nxmax-1,0:nymax-1,1,2)
+      real u10(0:nxmax-1,0:nymax-1,1,2)
+      real v10(0:nxmax-1,0:nymax-1,1,2)
+      real tt2(0:nxmax-1,0:nymax-1,1,2)
+      real td2(0:nxmax-1,0:nymax-1,1,2)
+      real lsprec(0:nxmax-1,0:nymax-1,1,2)
+      real convprec(0:nxmax-1,0:nymax-1,1,2)
+      real sshf(0:nxmax-1,0:nymax-1,1,2)
+      real ssr(0:nxmax-1,0:nymax-1,1,2)
+      real surfstr(0:nxmax-1,0:nymax-1,1,2)
+      real ustar(0:nxmax-1,0:nymax-1,1,2)
+      real wstar(0:nxmax-1,0:nymax-1,1,2)
+      real hmix(0:nxmax-1,0:nymax-1,1,2)
+      real tropopause(0:nxmax-1,0:nymax-1,1,2)
+      real oli(0:nxmax-1,0:nymax-1,1,2)
+      real diffk(0:nxmax-1,0:nymax-1,1,2)
+
+C ps                   surface pressure
+C sd                   snow depth
+C msl                  mean sea level pressure
+C tcc                  total cloud cover
+C u10                  10 meter u
+C v10                  10 meter v
+C tt2                  2 meter temperature
+C td2                  2 meter dew point
+C lsprec [mm/h]        large scale total precipitation
+C convprec [mm/h]      convective precipitation
+C sshf                 surface sensible heat flux
+C ssr                  surface solar radiation
+C surfstr              surface stress
+C ustar [m/s]          friction velocity
+C wstar [m/s]          convective velocity scale
+C hmix  [m]            mixing height
+C tropopause [m]       altitude of thermal tropopause
+C oli [m]              inverse Obukhov length (1/L)
+C diffk [m2/s]         diffusion coefficient at reference height
+
+
+      real vdep(0:nxmax-1,0:nymax-1,maxspec,2)
+
+C vdep [m/s]           deposition velocities
+
+
+*********************************************************************
+C Variables associated with the ECMWF input data (nested wind fields)
+*********************************************************************
+
+C NOTE: all nested variables have the same name as the variables used
+C for the mother domain, except with a 'n' appended at the end
+*********************************************************************
+
+      integer numbnests
+
+C numbnests    number of nested grids
+
+c     character*10 wfnamen(maxnests,maxwf)
+      character*80 wfnamen(maxnests,maxwf)
+      character*10 wfspecn(maxnests,maxwf)
+
+C wfnamen      nested wind field names
+C wfspecn      specifications of wind field file, e.g. if on hard 
+C              disc or on tape
+
+
+**********************************************************************
+C Variables characterizing size and location of the nested wind fields
+**********************************************************************
+
+      integer nxn(maxnests),nyn(maxnests)
+      real dxn(maxnests),dyn(maxnests),xlon0n(maxnests),ylat0n(maxnests)
+      real xlon2dn(0:nxmaxn-1,0:nymaxn-1,maxnests)
+      real ylat2dn(0:nxmaxn-1,0:nymaxn-1,maxnests)
+      integer m_grid_id(0:maxnests), m_parent_grid_id(0:maxnests)
+      integer m_parent_grid_ratio(0:maxnests)
+      integer l_parent_nest_id(0:maxnests)
+      integer i_parent_start(0:maxnests), j_parent_start(0:maxnests)
+
+C nxn,nyn      actual dimensions of nested wind fields in x and y direction
+C dxn,dyn      grid distances in x,y direction for the nested grids
+C
+C xlon0n   *** in FLEXPART_ECMWF, xlon0n & ylat0n are the geographical 
+C ylat0n           longitude & latitude of lower left grid point of a nested grid
+C          *** in WRF version, xlon0n & ylat0n are the x,y coordinates 
+C                  (in meters, relative to the mother grid) 
+C                  of lower left "T-grid" point of a nested grid
+C
+C xlon2dn      geographical lon,lat (degrees) at "T-grid" points
+C ylat2dn          of a nested grid
+c
+c note:  for the following 6 arrays, index 0 refers to the mother grid
+c m_grid_id              WRF grid id number for the nested grid
+c m_parent_grid_id       WRF grid id number for the parent grid
+c m_parent_grid_ratio    ratio of parent grid dx/dy to nested grid dx/dy
+c l_parent_nest_id       FLEXPART_WRF nest id number for the parent nest
+c                        (This is needed because the WRF run might have 3 grids
+c                        but the FLEXPART_WRF run might only use grids 2 & 3.)
+c i_parent_start         parent grid x location of the nested grid's lower left corner
+c j_parent_start         parent grid y location of the nested grid's lower left corner
+
+
+C Nested fields, unchangeable with time
+***************************************
+
+      real oron(0:nxmaxn-1,0:nymaxn-1,maxnests)
+      real excessoron(0:nxmaxn-1,0:nymaxn-1,maxnests)
+      real lsmn(0:nxmaxn-1,0:nymaxn-1,maxnests)
+      real xlandusen(0:nxmaxn-1,0:nymaxn-1,numclass,maxnests)
+
+
+C 3d nested fields
+******************
+
+      real uun(0:nxmaxn-1,0:nymaxn-1,nzmax,2,maxnests)
+      real vvn(0:nxmaxn-1,0:nymaxn-1,nzmax,2,maxnests)
+      real wwn(0:nxmaxn-1,0:nymaxn-1,nzmax,2,maxnests)
+      real ttn(0:nxmaxn-1,0:nymaxn-1,nzmax,2,maxnests)
+      real qvn(0:nxmaxn-1,0:nymaxn-1,nzmax,2,maxnests)
+      real pvn(0:nxmaxn-1,0:nymaxn-1,nzmax,2,maxnests)
+      real rhon(0:nxmaxn-1,0:nymaxn-1,nzmax,2,maxnests)
+      real drhodzn(0:nxmaxn-1,0:nymaxn-1,nzmax,2,maxnests)
+      real tthn(0:nxmaxn-1,0:nymaxn-1,nuvzmax,2,maxnests)
+      real qvhn(0:nxmaxn-1,0:nymaxn-1,nuvzmax,2,maxnests)
+      real pphn(0:nxmaxn-1,0:nymaxn-1,nuvzmax,2,maxnests)
+      real zzhn(0:nxmaxn-1,0:nymaxn-1,nwzmax+1,2,maxnests)
+
+C 2d nested fields
+******************
+
+      real psn(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real sdn(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real msln(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real tccn(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real u10n(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real v10n(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real tt2n(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real td2n(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real lsprecn(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real convprecn(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real sshfn(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real ssrn(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real surfstrn(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real ustarn(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real wstarn(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real hmixn(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real tropopausen(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real olin(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+      real diffkn(0:nxmaxn-1,0:nymaxn-1,1,2,maxnests)
+
+      real vdepn(0:nxmaxn-1,0:nymaxn-1,maxspec,2,maxnests)
+
+
+**************************************************
+C Certain auxiliary variables needed for the nests
+**************************************************
+
+      real xresoln(0:maxnests),yresoln(0:maxnests)
+
+C xresoln, yresoln   Factors by which the resolutions in the nests 
+C                    are enhanced compared to mother grid
+
+      real xln(maxnests),yln(maxnests),xrn(maxnests),yrn(maxnests)
+
+C xln,yln,xrn,yrn    Corner points of nested grids in grid coordinates
+C                    of mother grid
+ 
+
+*******************************************************
+C Variables defining the polar stereographic projection
+*******************************************************
+
+      logical xglobal,sglobal,nglobal
+      real switchnorthg,switchsouthg
+
+C     xglobal             T for global fields, F for limited area fields
+C     sglobal             T if domain extends towards south pole
+C     nglobal             T if domain extends towards north pole
+C     switchnorthg,switchsouthg   same as parameters switchnorth,
+C                         switchsouth, but in grid units
+
+      real southpolemap(9),northpolemap(9)
+
+C     southpolemap,northpolemap   define stereographic projections
+C                         at the two poles
+
+
+*******************
+C Landuse inventory
+*******************
+
+      real xlandinvent(555,224,numclass)
+      real z0(numclass)
+
+C xlandinvent         landuse inventory (numclass=8 classes)
+C z0                  roughness length for the landuse classes
+
+
+
+***************************************************************************
+C Variables characterizing the output grid and containing the model results
+***************************************************************************
+
+      integer numxgrid,numygrid,numzgrid
+      real dxout,dyout,outlon0,outlat0,xoutshift,youtshift
+      integer numxgridn,numygridn
+      real dxoutn,dyoutn,outlon0n,outlat0n,xoutshiftn,youtshiftn
+      real outheight(maxzgrid),outheighthalf(maxzgrid)
+      logical DEP,DRYDEP,DRYDEPSPEC(maxspec),WETDEP
+      real outgrid_swlon,outgrid_swlat,outgrid_nelon,outgrid_nelat 
+      real outgridn_swlon,outgridn_swlat,outgridn_nelon,outgridn_nelat
+
+C numxgrid,numygrid       number of grid points in x,y-direction
+C numxgridn,numygridn     number of grid points in x,y-direction for nested output grid
+C numzgrid                number of vertical levels of output grid
+C dxout,dyout             grid distance of output grid (in grid-meters)
+C dxoutn,dyoutn           grid distance of nested output grid (in grid-meters)
+C outlon0,outlat0         lower left corner of output grid (in grid-meters)
+C outlon0n,outlat0n       lower left corner of nested output grid (in grid-meters)
+C xoutshift,youtshift     xlon0-outlon0, ylat0-outlat0
+C xoutshiftn,youtshiftn   xlon0-outlon0n, ylat0-outlat0n
+C outheight [m]           upper levels of the output grid
+C outheighthalf [m]       half (middle) levels of the output grid cells
+C outgrid_swlon,outgrid_swlat - lower left  corner of output grid (in degrees lon,lat)
+C outgrid_nelon,outgrid_nelat - upper right corner of output grid (in degrees lon,lat)
+C outgridn_swlon, ...         - similar variables for the nested output grid
+C DEP                     .true., if either dry or wet depos. is switched on
+C DRYDEP                  .true., if dry deposition is switched on
+C DRYDEPSPEC              .true., if dry deposition is switched on for that species
+C WETDEP                  .true., if wet deposition is switched on
+
+
+C For forward runs, the 4th dimension of gridunc (3rd dimension of
+C wetgridunc and drygridunc) must be maxspec; for backward runs it must be
+C maxpoint. For backward runs, maxspec should be 1. Use the first set of
+C grid definitions for forward runs, the second one for backward runs.
+C Attention: corresponding changes are necessary in the subroutine concoutput.f
+*******************************************************************************
+
+      real gridunc(0:maxxgrid-1,0:maxygrid-1,maxzgrid,maxpointspec,
+     +nclassunc,maxageclass)
+      real griduncn(0:maxxgridn-1,0:maxygridn-1,maxzgrid,maxpointspec,
+     +nclassunc,maxageclass)
+      real wetgridunc(0:maxxgrid-1,0:maxygrid-1,maxpointspec,nclassunc,
+     +maxageclass)
+      real wetgriduncn(0:maxxgridn-1,0:maxygridn-1,maxpointspec,
+     +nclassunc,maxageclass)
+      real drygridunc(0:maxxgrid-1,0:maxygrid-1,maxpointspec,nclassunc,
+     +maxageclass)
+      real drygriduncn(0:maxxgridn-1,0:maxygridn-1,maxpointspec,
+     +nclassunc,maxageclass)
+
+      real oroout(0:maxxgrid-1,0:maxygrid-1)
+      real orooutn(0:maxxgridn-1,0:maxygridn-1)
+      real area(0:maxxgrid-1,0:maxygrid-1)
+      real arean(0:maxxgridn-1,0:maxygridn-1)
+      real volume(0:maxxgrid-1,0:maxygrid-1,maxzgrid)
+      real volumen(0:maxxgridn-1,0:maxygridn-1,maxzgrid)
+
+      real fluxw(0:maxxgrid-1,0:maxygrid-1,maxzgrid,maxspec,maxageclass)
+      real fluxe(0:maxxgrid-1,0:maxygrid-1,maxzgrid,maxspec,maxageclass)
+      real fluxs(0:maxxgrid-1,0:maxygrid-1,maxzgrid,maxspec,maxageclass)
+      real fluxn(0:maxxgrid-1,0:maxygrid-1,maxzgrid,maxspec,maxageclass)
+      real fluxu(0:maxxgrid-1,0:maxygrid-1,maxzgrid,maxspec,maxageclass)
+      real fluxd(0:maxxgrid-1,0:maxygrid-1,maxzgrid,maxspec,maxageclass)
+      real areaeast(0:maxxgrid-1,0:maxygrid-1,maxzgrid)
+      real areanorth(0:maxxgrid-1,0:maxygrid-1,maxzgrid)
+
+C gridunc,griduncn        uncertainty of outputted concentrations
+C wetgridunc,wetgriduncn  uncertainty of accumulated wet deposited mass on output grid
+C drygridunc,drygriduncn  uncertainty of accumulated dry deposited mass on output grid
+C oroout,orooutn [m]      height of model topography at output grid
+C area,arean [m2]         area of each grid cell
+C volume,volumen [m3]     volume of each grid cell
+C ... field names with n at the end indicate a nested output grid                
+
+C flux?                   eastward, westward, northward, southward, upward and downward
+C                         fluxes of all species and all ageclasses
+C areaeast,areanorth [m2] side areas of each grid cell
+
+
+************************************
+C Variables defining receptor points
+************************************
+
+      real xreceptor(maxreceptor),yreceptor(maxreceptor)
+      real receptor_lon(maxreceptor),receptor_lat(maxreceptor)
+      real receptorarea(maxreceptor)
+      real creceptor(maxreceptor,maxspec)
+      character*16 receptorname(maxreceptor)
+      integer numreceptor
+
+C xreceptor,yreceptor     receptor position (in grid-index coordinates)
+C receptor_lon,receptor_lat -- receptor position (in degrees lon/lat)
+C creceptor               concentrations at receptor points
+C receptorarea            area of 1*1 grid cell at receptor point
+
+
+
+****************************************
+C Variables characterizing each particle
+****************************************
+
+      integer numpart,itra1(maxpart)
+      integer npoint(maxpart),nclass(maxpart)
+      integer idt(maxpart),itramem(maxpart),itrasplit(maxpart)
+      integer numparticlecount
+
+      double precision xtra1(maxpart),ytra1(maxpart)
+      real ztra1(maxpart),xmass1(maxpart,maxspec)
+
+C numpart                 actual number of particles in memory
+C itra1 (maxpart) [s]     temporal positions of the particles
+C npoint(maxpart)         indicates the release point of each particle
+C nclass (maxpart)        one of nclassunc classes to which the particle is attributed
+C itramem (maxpart) [s]   memorized release times of the particles
+C itrasplit (maxpart) [s] next time when particle is to be split into two
+C idt(maxpart) [s]        time step to be used for next integration
+C numparticlecount        counts the total number of particles that have been released
+C xtra1,ytra1,ztra1       spatial positions of the particles
+C xmass1 [kg]             particle masses
+
+
+
+********************************************************
+C Info table on available chemical species/radionuclides
+********************************************************
+
+      character*10 specname(maxtable)
+      real decaytime(maxtable),wetscava(maxtable),wetscavb(maxtable)
+      real drydiff(maxtable),dryhenry(maxtable),dryactiv(maxtable)
+      real partrho(maxtable),partmean(maxtable),partsig(maxtable)
+      real dryvelo(maxtable),weightmol(maxtable)
+
+C specname            Name of chemical species/radionuclide
+C decaytime           Half time of radionuclides
+C wetscava, wetscavb  Parameters for calculating scavenging coefficients
+C drydiff             diffusivitiy of species relative to diff. of H2O
+C dryhenry [M/atm]    Henry constant
+C dryactiv            reactivity relative to that of O3
+C partrho [kg/m3]     density of particles
+C partmean [m]        mean diameter of particles
+C partsig [m]         mean stand. deviation of particle diameter
+C dryvelo [cm/s]      constant dry deposition velocity
+C weightmol [g/mol]   molecular weight
+
+
+
+*********************
+C Random number field
+*********************
+
+      real rannumb(maxrand)
+
+C rannumb                 field of normally distributed random numbers
+
+
+
+      common /globald/             ! DOUBLE PRECISION
+     +bdate,edate
+
+      common /globali/             ! INTEGER
+     +nx,ny,nxmin1,nymin1,nxfield,nuvz,nwz,nz,nmixz,numbwf,wftime,
+     +add_sfc_level,
+     +itsplit,lsynctime,ibdate,ibtime,iedate,ietime,mintime,lwindinterv,
+     +len,numpoint,ldirect,nageclass,lage,ideltas,numpart,npoint,itra1,
+     +itramem,itrasplit,ireleasestart,ireleaseend,ifine,iout,ipout,ipin,
+     +iflux,idt,nclass,memtime,memind,nlev_ec,npart,loutstep,loutaver,
+     +loutsample,method,mdomainfill,numxgrid,numygrid,numzgrid,nspec,
+     +numxgridn,numygridn,kindz,
+     +link,numreceptor,lsubgrid,lconvection,lagespectra,mquasilag,
+     +nested_output,nx_we,ny_sn,numcolumn_we,numcolumn_sn,numcolumn,
+     +ind_source,ind_receptor,numparticlecount,
+     +ind_rel,ind_samp,
+     +turb_option,method_w_terrain_correction,
+     +map_proj_id,map_proj_method,sfc_option,iouttype
+
+      common /globalr/             ! REAL
+     +xtra1,ytra1,ztra1,xmass1,decaytime,decay,rannumb,
+     +wetscava,wetscavb,weta,wetb,drydiff,dryhenry,dryactiv,partrho,
+     +partmean,partsig,dryvelo,weightmol,reldiff,henry,f0,ri,
+     +rac,rcl,rgs,rlu,rm,dryvel,weightmolar,density,dquer,dsigma,
+     +vset,vsetaver,schmi,fract,ctl,
+c    +akm,bkm,akz,bkz,aknew,bknew,
+     +eta_w_wrf, eta_u_wrf, p_top_wrf,
+     +rho,drhodz,fine,
+     +switchsouthg,switchnorthg,southpolemap,northpolemap,
+     +xreceptor,yreceptor,creceptor,receptorarea,
+     +receptor_lon,receptor_lat,
+     +uu,vv,uupol,vvpol,ww,tt,qv,pv,ps,oro,lsm,xlanduse,sd,msl,tcc,
+     +u10,v10,tt2,td2,diffk,vdep,lsprec,convprec,xlandinvent,z0,
+     +tth,qvh,pph,zzh,
+     +sshf,ssr,surfstr,ustar,wstar,hmix,tropopause,oli,
+     +area_hour,point_hour,area_dow,point_dow,
+     +xpoint1,ypoint1,xpoint2,ypoint2,zpoint1,zpoint2,xmass,
+     +releases_swlon,releases_swlat,releases_nelon,releases_nelat,
+     +dx,dy,dxconst,dyconst,height,
+     +xlon0,ylat0,gridunc,griduncn,wetgridunc,wetgriduncn,
+     +drygridunc,drygriduncn,outheight,outheighthalf,
+     +oroout,orooutn,volume,volumen,area,arean,
+     +fluxe,fluxw,fluxs,fluxn,fluxu,fluxd,outstep,
+     +areaeast,areanorth,
+     +dxout,dyout,outlon0,outlat0,xoutshift,youtshift,excessoro,
+     +dxoutn,dyoutn,outlon0n,outlat0n,xoutshiftn,youtshiftn,
+     +outgrid_swlon,outgrid_swlat,outgrid_nelon,outgrid_nelat, 
+     +outgridn_swlon,outgridn_swlat,outgridn_nelon,outgridn_nelat, 
+     +zcolumn_we,zcolumn_sn,xmassperparticle,acc_mass_we,acc_mass_sn,
+     +xlon2d,ylat2d,
+     +map_stdlon,map_truelat1,map_truelat2
+
+      common /globall/                              ! LOGICAL + CHARACTER
+     +DEP,DRYDEP,DRYDEPSPEC,WETDEP,turbswitch,
+     +xglobal,sglobal,nglobal,gdomainfill,          ! LOGICAL
+     +path,wfname,wfspec,compoint,specname,species, ! CHARACTER
+     +receptorname
+
+      common /global4/
+     +numbnests,nxn,nyn,
+     +m_grid_id, m_parent_grid_id, m_parent_grid_ratio,
+     +l_parent_nest_id,i_parent_start, j_parent_start,
+     +uun,vvn,wwn,ttn,qvn,pvn,psn,oron,lsmn,
+     +xlandusen,xlon0n,ylat0n,dxn,dyn,rhon,drhodzn,sdn,msln,tccn,
+     +u10n,v10n,tt2n,td2n,diffkn,vdepn,lsprecn,convprecn,sshfn,
+     +tthn,qvhn,pphn,zzhn,
+     +surfstrn,olin,hmixn,tropopausen,wstarn,ustarn,ssrn,
+     +xresoln,yresoln,
+     +xln,yln,xrn,yrn,wfnamen,wfspecn,excessoron,
+     +xlon2dn,ylat2dn
+
+      real xmet0,ymet0,xmet0n(maxnests),ymet0n(maxnests)
+      equivalence (xlon0, xmet0)
+      equivalence (ylat0, ymet0)
+      equivalence (xlon0n(1), xmet0n(1))
+      equivalence (ylat0n(1), ymet0n(1))
+      real out_xm0,out_ym0,out_xm0n,out_ym0n
+      equivalence (outlon0, out_xm0)
+      equivalence (outlat0, out_ym0)
+      equivalence (outlon0n, out_xm0n)
+      equivalence (outlat0n, out_ym0n)
+

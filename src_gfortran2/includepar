@@ -1,0 +1,290 @@
+********************************************************************************
+*                                                                              *
+*   Note:  This is the FLEXPART-WRF version of file includepar.                *
+*                                                                              *
+*   Include file for calculation of particle trajectories (Program FLEXPART)   *
+*        This file contains the parameter statements used in FLEXPART          *
+*                                                                              *
+*        Author: A. Stohl                                                      *
+*                                                                              *
+*        1997                                                                  *
+*                                                                              *
+*        Last update 10 August 2000                                            *
+*                                                                              *
+* changes by R. Easter & J. Fast for WRF version, Oct-Dec 2005                 *
+*   nxmax,nymax,nuvzmax,nwzmax,nzmax changed                                   *
+*   nxshift changed to 0                                                       *
+*   turb_option_none, turb_option_diagnosed, turb_option_tke added             *
+*   changed nxmaxn, nymaxn, maxnests from 1,1,1 to 101,101,3                   *
+*   changed nxmax, nymax from 361,181 to 101,101 to 121,121                    *
+*                                                                              *
+********************************************************************************
+
+      implicit none
+
+
+************************************************************
+C Number of directories/files used for FLEXPART input/output
+************************************************************
+
+      integer numpath
+      parameter(numpath=4)
+
+C numpath                 Number of different pathnames for input/output files
+
+
+******************************
+C Physical and other constants
+******************************
+
+      real pi,pi180,r_air,r_earth,ga,cpa,kappa
+      parameter(pi=3.14159265,r_earth=6.371e6,r_air=287.05,ga=9.81)
+      parameter(cpa=1004.6,kappa=0.286,pi180=pi/180.)
+
+C pi                      number "pi"
+C pi180                   pi/180.
+C r_earth                 radius of earth [m]
+C r_air                   individual gas constant for dry air [J/kg/K]
+C ga                      gravity acceleration of earth [m/s**2]
+C cpa                     specific heat for dry air
+C kappa                   exponent of formula for potential temperature
+
+      real karman,href,convke,hmixmin,hmixmax,turbmesoscale
+      real d_trop,d_strat
+      parameter(karman=0.40,href=15.,convke=2.0)
+      parameter(hmixmin=100.,hmixmax=4500.,turbmesoscale=0.16)
+      parameter(d_trop=50.,d_strat=0.1)
+
+C karman                  Karman's constant
+C href [m]                Reference height for dry deposition
+C konvke                  Relative share of kinetic energy used for parcel lifting
+C hmixmin,hmixmax         Minimum and maximum allowed PBL height
+C turbmesoscale           the factor by which standard deviations of winds at grid
+C                         points surrounding the particle positions are scaled to
+C                         yield the scales for the mesoscale wind velocity fluctuations  
+C d_trop [m2/s]           Turbulent diffusivity for horizontal components in the troposphere
+C d_strat [m2/s]          Turbulent diffusivity for vertical component in the stratosphere
+
+
+*****************************************************
+C Constants related to the stratospheric ozone tracer
+*****************************************************
+
+      real ozonescale,pvcrit
+      parameter(ozonescale=60.,pvcrit=2.0)
+
+C ozonescale              ppbv O3 per PV unit
+C pvcrit                  PV level of the tropopause
+
+
+
+*********************
+C Some time constants
+*********************
+
+      integer idiffnorm,idiffmax,minstep
+      parameter(idiffnorm=10800,idiffmax=2*idiffnorm,minstep=1)
+
+C idiffnorm [s]           normal time interval between two wind fields
+C idiffmax [s]            maximum time interval between two wind fields
+C minstep [s]             minimum time step to be used within FLEXPART
+
+
+******************************************************************
+C Parameters for polar stereographic projection close to the poles
+******************************************************************
+
+      real switchnorth,switchsouth
+      parameter(switchnorth=75.,switchsouth=-75.)
+
+C switchnorth    use polar stereographic grid north of switchnorth
+C switchsouth    use polar stereographic grid south of switchsouth
+
+
+**********************************************
+C Maximum dimensions of the input mother grids
+**********************************************
+
+      integer nxmax,nymax,nuvzmax,nwzmax,nzmax,nxshift
+C     parameter(nxmax=361,nymax=181,nuvzmax=61,nwzmax=61,nzmax=61)
+Cjdf  parameter(nxmax=145,nymax=73,nuvzmax=61,nwzmax=61,nzmax=61)
+      parameter(nxmax=300,nymax=300)
+      parameter(nuvzmax=61,nwzmax=61,nzmax=61)
+
+      parameter(nxshift=0)
+Crce  parameter(nxshift=359)  
+Cjdf  parameter(nxshift=143)
+
+      integer nconvlevmax,na 
+      parameter (nconvlevmax = nuvzmax-1)
+      parameter (na = nconvlevmax+1)
+
+
+C nxmax,nymax             maximum dimension of wind fields in x and y
+C                         direction, respectively
+C nuvzmax,nwzmax          maximum dimension of (u,v) and (w) wind fields in z
+C                         direction (for fields on eta levels)
+C nzmax                   maximum dimension of wind fields in z direction
+C                         for the transformed Cartesian coordinates
+C nxshift                 for global grids (in x), the grid can be shifted by
+C                         nxshift grid points, in order to accomodate nested
+C                         grids, and output grids overlapping the domain "boundary"
+C                         nxshift must not be negative; "normal" setting would be 0
+C ntracermax              maximum number of tracer species in convection
+C nconvlevmax             maximum number of levels for convection
+C na                      parameter used in Emanuel's convect subroutine
+
+
+**********************************************
+C Maximum dimensions of the nested input grids
+**********************************************
+
+      integer maxnests,nxmaxn,nymaxn
+C     parameter(maxnests=1,nxmaxn=1,nymaxn=1)
+      parameter(maxnests=4,nxmaxn=181,nymaxn=181)
+
+C maxnests                maximum number of nested grids
+C nxmaxn,nymaxn           maximum dimension of nested wind fields in
+C                         x and y direction, respectively
+
+
+**********************************
+C Parmaters for GRIB file decoding
+**********************************
+
+      integer jpack,jpunp
+      parameter(jpack=4*nxmax*nymax,jpunp=4*jpack)
+
+C jpack,jpunp             maximum dimensions needed for GRIB file decoding
+
+
+***************************************
+C Maximum dimensions of the output grid
+***************************************
+
+      integer maxxgrid,maxygrid,maxzgrid,maxxgridn,maxygridn
+      integer nclassunc,maxageclass
+      parameter(maxxgrid=300,maxygrid=300,maxxgridn=1,maxygridn=1)
+      parameter(maxageclass=1,maxzgrid=22,nclassunc=10)
+
+C maxxgrid,maxygrid,maxzgrid    maximum dimensions in x,y,z direction
+C maxxgridn,maxygridn           maximum dimension of the nested grid
+C nclassunc               number of classes used to calculate the uncertainty
+C                         of the output
+C maxageclass             maximum number of age classes used for output
+
+      integer maxreceptor
+      parameter(maxreceptor=200)
+
+C maxreceptor             maximum number of receptor points
+
+
+***************************************************
+C Maximum number of particles, species, and similar
+***************************************************
+
+      integer maxpart,maxpoint,maxspec,maxpointspec
+      parameter(maxpart=1000000)
+      parameter(maxpoint=10000,maxspec=1,maxpointspec=maxspec)
+
+
+C maxpart                 Maximum number of particles
+C maxpoint                Maximum number of release locations
+C maxspec                 Maximum number of chemical species per release
+C maxpointspec            maxspec for forward runs, maxpoint for backward runs
+C                         Attention: this switch between forward and backward
+C                         simulations must be set appropriately by the user
+
+      integer maxwf,maxtable,numclass,ni
+      parameter(maxwf=50000,maxtable=1000,numclass=9,ni=11)
+
+C maxwf                   maximum number of wind fields to be used for simulation
+C maxtable                Maximum number of chemical species that can be
+C                         tabulated for FLEXPART
+C numclass                Number of landuse classes available to FLEXPART
+C ni                      Number of diameter classes of particles
+
+
+***************************************************************************
+C Maximum number of particles to be released in a single atmospheric column
+C for the domain-filling trajectories option
+***************************************************************************
+
+      integer maxcolumn
+      parameter(maxcolumn=3000)
+
+
+**********************************
+C Dimension of random number field
+**********************************
+
+      integer maxrand
+      parameter(maxrand=2000000)
+
+C maxrand                 number of random numbers used
+
+
+******************************************************
+C Number of clusters to be used for plume trajectories
+******************************************************
+
+      integer ncluster
+      parameter(ncluster=5)
+
+*************************************
+C Unit numbers for input/output files
+*************************************
+
+      integer unitpath,unitcommand,unitageclasses,unitgrid,unitavailab
+      integer unitreleases,unitoutrecept,unitoutreceptppt
+      integer unitvert,unitoro,unitlsm,unitreceptor,unitouttraj
+      integer unitpoin,unitoutgrid,unitoutgridppt,unitoutinfo
+      integer unitspecies,unitland,unitsurfdata,unitwesely
+      integer unitpartout,unitpartin,unitflux,unitdates,unitheader
+      integer unitshortpart,unitemissvar,unitboundcond
+      parameter(unitpath=1,unitcommand=1,unitageclasses=1,unitgrid=1)
+      parameter(unitavailab=1,unitreleases=1,unitpartout=93)
+      parameter(unitpartin=93,unitflux=98,unitouttraj=96)
+      parameter(unitvert=1,unitoro=1,unitpoin=1,unitreceptor=1)
+      parameter(unitoutgrid=97,unitoutgridppt=99,unitoutinfo=1)
+      parameter(unitspecies=1,unitoutrecept=91,unitoutreceptppt=92)
+      parameter(unitlsm=1,unitsurfdata=1,unitland=1,unitwesely=1)
+      parameter(unitdates=94,unitheader=90,unitshortpart=95)
+      parameter(unitemissvar=2,unitboundcond=89)
+
+*************************************
+C turb_option values and other FLEXPART_WRF stuff
+*************************************
+      integer turb_option_none, turb_option_diagnosed, turb_option_tke
+      parameter( turb_option_none=0, turb_option_diagnosed=1, 
+     &           turb_option_tke=2)
+      integer sfc_option_diagnosed, sfc_option_wrf
+      parameter( sfc_option_diagnosed=0, sfc_option_wrf=1 )
+
+      integer partoutput_use_nested
+      parameter (partoutput_use_nested = 1)
+! if partoutput_use_nested is 0 or negative, the topo, pv, qv, ... 
+!    at particle positions are calculated using outermost grid fields
+! if partoutput_use_nested is 1 or positive, they are calculated 
+!    from nested grid fields (when a particle is inside a nested grid)
+
+
+      integer iomode_xycoord_latlon, iomode_xycoord_meters
+      parameter (iomode_xycoord_latlon=0, iomode_xycoord_meters=1)
+      integer iomode_xycoord
+      parameter (iomode_xycoord=iomode_xycoord_latlon)   ! use this for x,y
+                                                         ! in/out as lat/lon
+!      parameter (iomode_xycoord=iomode_xycoord_meters)   ! use this for x,y
+!                                                        ! in/out as meters
+!
+! If input and output of x,y coordinates is to be in degrees of geographical 
+!    latitude/longitude, then set iomode_xycoord = iomode_xycoord_latlon.
+!    Most users would probably want to run this way.
+! If input and output of x,y coordinates is to be in meters on the WRF 
+!    outermost grid, then set iomode_xycoord = iomode_xycoord_meters.
+!    This was used for development/testing, and is provided as an option.
+! Note that the meters units are used internally for calculating particle
+!    positions.  When lat/lon input/output is selected, the x,y coordinates
+!    are transformed between lat/lon and meters during input/output.
+
+

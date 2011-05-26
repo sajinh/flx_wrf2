@@ -1,0 +1,4 @@
+To continue simulation with dumped particles, the following is necessary
+to manually copy the last particle position file to one called partposit_end
+
+and then change IPOUT to continue simulation with dumped particles

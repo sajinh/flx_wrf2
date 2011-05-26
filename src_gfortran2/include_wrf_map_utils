@@ -1,0 +1,66 @@
+! file include_map_utils - created 22-nov-2005
+!
+!   this file contains the "module data" from 
+!	file .../wrfsi2.1/src/mod/module_map_utils.F
+!-----------------------------------------------------------------------
+
+
+      logical proj_init, proj_cyclic
+      common / proj_info_cmn01 / 
+     &     proj_init, proj_cyclic
+
+      integer proj_code, proj_nx, proj_ny
+      integer proj_latlon, proj_merc, proj_lc, proj_ps, proj_rotlat
+      common / proj_info_cmn02 / 
+     &     proj_code, proj_nx, proj_ny,
+     &     proj_latlon, proj_merc, proj_lc, proj_ps, proj_rotlat
+
+      real proj_lat1, proj_lon1, proj_dx,
+     &     proj_dlat, proj_dlon, proj_clat, proj_clon,
+     &     proj_stdlon, proj_truelat1, proj_truelat2,
+     &     proj_hemi, proj_cone, proj_polei, proj_polej,
+     &     proj_rsw, proj_rebydx
+      real pi, deg_per_rad, rad_per_deg, earth_radius_m
+      common / proj_info_cmn03 / 
+     &     proj_lat1, proj_lon1, proj_dx,
+     &     proj_dlat, proj_dlon, proj_clat, proj_clon,
+     &     proj_stdlon, proj_truelat1, proj_truelat2,
+     &     proj_hemi, proj_cone, proj_polei, proj_polej,
+     &     proj_rsw, proj_rebydx,
+     &     pi, deg_per_rad, rad_per_deg, earth_radius_m
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+c ! define data structures to define various projections
+c
+c type proj_info
+c
+c   logical        proj_init     ! flag to indicate if this struct is 
+c                                ! ready for use
+c   logical        proj_cyclic   ! flag indicating if this grid
+c                                ! is cyclic in the longitudinal
+c                                ! direction...happens with
+c                                ! global lat/lon grids like gfs/avn
+c   integer        proj_code     ! integer code for projection type
+c   integer        proj_nx
+c   integer        proj_ny
+c   real           proj_lat1    ! sw latitude (1,1) in degrees (-90->90n)
+c   real           proj_lon1    ! sw longitude (1,1) in degrees (-180->180e)
+c   real           proj_dx       ! grid spacing in meters at truelats, used
+c                                ! only for ps, lc, and merc projections
+c   real           proj_dlat     ! lat increment for lat/lon grids
+c   real           proj_dlon     ! lon increment for lat/lon grids
+c   real           proj_clat     ! center latitude of grid
+c   real           proj_clon     ! center longitude of grid
+c   real           proj_stdlon   ! longitude parallel to y-axis (-180->180e)
+c   real           proj_truelat1 ! first true latitude (all projections)
+c   real           proj_truelat2 ! second true lat (lc only)
+c   real           proj_hemi     ! 1 for nh, -1 for sh
+c   real           proj_cone     ! cone factor for lc projections
+c   real           proj_polei    ! computed i-location of pole point
+c   real           proj_polej    ! computed j-location of pole point
+c   real           proj_rsw      ! computed radius to sw corner
+c   real           proj_rebydx   ! earth radius divided by dx
+c
+c end type proj_info
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+

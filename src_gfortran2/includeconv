@@ -1,0 +1,31 @@
+********************************************************************************
+*        Include file for convection 
+*        This file contains a global common block used by convect 
+*        and other subroutines 
+*        Author: P. Ferstl
+* 
+*        Feb 2001
+* 
+********************************************************************************
+
+c     parameter (nconvlevmax = nuvzmax-1,
+C                na = nconvlevmax+1)
+C     these parameters are defined in includepar now!
+
+      real pconv(nconvlevmax),phconv(na),dp(nconvlevmax)
+      real pconv_hpa(nconvlevmax),phconv_hpa(na)
+
+      real ft(nconvlevmax), fq(nconvlevmax)
+      real fmass(nconvlevmax,nconvlevmax),sub(nconvlevmax)
+      real fmassfrac(nconvlevmax,nconvlevmax)
+      real cbaseflux(0:nxmax-1,0:nymax-1)
+      real cbasefluxn(0:nxmaxn-1,0:nymaxn-1,maxnests)
+      real tconv(na),qconv(na),qsconv(na)
+      real psconv,tt2conv,td2conv
+
+      integer nconvlev,nconvtop
+
+      common /convectblock/
+     &pconv,phconv,pconv_hpa,phconv_hpa,dp,ft,fq,nconvlev,nconvtop,
+     &fmass,fmassfrac,sub,tconv,qconv,qsconv,cbaseflux,cbasefluxn,
+     &psconv,tt2conv,td2conv
