@@ -1,6 +1,7 @@
 FLX_WRF - root of tar file
-          + contains flexpart-wrf.phase?.pdf (3 files - these
-          + are documents from Jerome Fast, developer of FLXPART-WRF)
+
+docs - contains flexpart-wrf.phase?.pdf (3 files - these
+       + are documents from Jerome Fast, developer of FLXPART-WRF)
 
 src_gfortran2 - contains source code of flexpart-wrf
                 + some modifications were made so that it runs with
