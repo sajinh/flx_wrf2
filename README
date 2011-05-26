@@ -1,0 +1,35 @@
+FLX_WRF - root of tar file
+          + contains flexpart-wrf.phase?.pdf (3 files - these
+          + are documents from Jerome Fast, developer of FLXPART-WRF)
+
+src_gfortran2 - contains source code of flexpart-wrf
+                + some modifications were made so that it runs with
+                + gfortran
+                + modify Registry file of WRF source code and recompile
+                + if necessary to output the following variables in
+                + the wrfout_* files
+                  ++ ALT, TKE, TKE_PBL, RAINC, RAINNC, CLDFRA
+                + the code currently does not compute wetdeposition
+                + i will modify it soon to try get the wetdeposition working
+                + the makefile is tailored for gfortran
+
+SCEN1 - a directory showing sample invocation of FLXPART-WRF
+      - also contains ruby scripts that can help construct the
+      - the various files needed to run FLEXPART
+
+SCEN1/plot - contains Ruby and C code to convert FLXPART output
+           - to C binary
+           - use parse_header.rb followed by "cat dims.check" to
+           - determine NX, NY and NZ parameters defined in flexpart_helpers.h
+           - make_inlist.rb creates input_list, an ascii file containing
+             + names of input files that multi_r*_w.c files need to
+             + to create a single C binary file containing concentration,
+             + wet deposition or dry deposition output
+           - make_inlist.rb also creates time_list that is needed
+             + by plot/ncl/plot_conc.ncl
+
+SCEN1      - run_flx.rb
+             + Once all parameters are set, I use run_flx.rb
+             + to help make production runs
+
+SCEN1/plot/ncl - NCL scripts that I use to make plots
