@@ -1,0 +1,90 @@
+_FillValue           = AFS_FillValue()
+_StartMon            = integer_value_of_month(getenv("START_MON"))
+_LeadTime            = stringtoint(getenv("LEAD_TIME"))
+_EndMon              = _StartMon+_LeadTime-1
+_ForecastYear        = stringtoint(getenv("START_YEAR"))
+_HindcastYear        = _ForecastYear
+_HindcastMon         = _StartMon
+_ForecastMon         = _StartMon
+_PlotYear            = _ForecastYear
+_Store               = getenv("STORE")
+_Cabinet             = getenv("CABINET")
+_AFSDataType         = _Cabinet
+_Model               = getenv("MODEL")
+_MME                 = _Model
+_MMEClass            = getenv("MME_CLASS")
+_PMMECat             = stringtoint(getenv("PMME_CAT"))
+_VName               = getenv("VNAM")
+_PMedia              = getenv("PLOT_MEDIA")
+_MMEModels           = getenv("MME_MODELS")
+_ModelName           = getenv("SUPP_MODEL")
+_SeaLand             = getenv("SEA_LAND")
+_Score               = getenv("SCORE")
+
+_Seasonal            = False
+_NMon                = _LeadTime
+Seasonal_            = getenv("SEASONAL")
+if .not.ismissing(Seasonal_) .and. getenv("SEASONAL").eq."True"
+  _Seasonal          = True
+  _SeasStart         = stringtoint(getenv("SEAS_START"))
+  _SeasEnd           = stringtoint(getenv("SEAS_END"))
+  _NMon              = 1
+end if
+
+_Lat                 = AFS_Lat()
+_Lon                 = AFS_Lon()
+_NLat                = _Lat@nlat
+_NLon                = _Lon@nlon
+
+  function getPltFilNam(mon,reg)
+  ; called by AFS_Plot
+  ; returns a output file name
+  ; also creates directory structure
+  ; and links
+  begin
+    if _PMedia.eq."x11"
+     return("xwindow")
+    end if
+
+    pltroot=getenv("AFS")
+    ltime = getenv("LEAD_TIME")+"-MON"
+    month=_StartMon+mon
+
+    if _Seasonal
+      freq="Seasonal"
+      seas_name="."+numeral_to_string(_StartMon+_SeasStart)
+      seas_name=seas_name+numeral_to_string(_SeasEnd-_SeasStart+1)
+      alt_seas_name=construct_season(_SeasStart+_StartMon,\
+                                           _SeasEnd+_StartMon)
+    else
+      freq="Monthly"
+      seas_name="."+numeral_to_string(month)
+      alt_seas_name=integer_to_month(_StartMon+mon)
+    end if
+
+
+    pyear=numeral_to_string(_PlotYear)
+    pmon=numeral_to_string(_StartMon)
+    pltfil_arr=(/pltroot,"FIG",ltime,_Store,changeCase(_Cabinet,"up"),_Model, \
+                 pyear,pmon,freq/)
+    pltfil_arr@join="/"
+    pltfil=array_to_string(pltfil_arr)
+   
+    target=pltfil+"/"+seas_name
+    link=pltfil+"/"+alt_seas_name
+
+    ; Make the directory 
+    if .not.isfilepresent(link)
+    system("mkdir -p "+target)
+    system("ln -s "+target+" "+link)
+    end if
+
+    pltfil=pltfil+"/"+seas_name+"/"+capitalize(reg)+"/"
+    system("mkdir -p "+pltfil)
+    return(pltfil)
+  end
+
+  function get_MME_Method()
+  begin
+  return(_MME)
+  end

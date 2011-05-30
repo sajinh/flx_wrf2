@@ -1,0 +1,7 @@
+load "$AFS2/lib/ncl/ncl_libs.ncl"
+load "$AFS2/lib/ncl/helpers/graphic_helper.ncl"
+load "$AFS2/lib/ncl/helpers/analysis_helper.ncl"
+load "$AFS2/lib/ncl/helpers/file_helper.ncl"
+load "$AFS2/lib/ncl/helpers/array_manipulator.ncl"
+load "$AFS2/lib/ncl/helpers/afs_msg_helper.ncl"
+load "$AFS2/lib/ncl/helpers/afs_mme_helper.ncl"
