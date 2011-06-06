@@ -1,3 +1,33 @@
+About FLEXPART
+-----
+
+The FLEXPART model is a Lagrangian Particle Dispersion Model developed at the Norwegian Institute for Air Research in the Department of Atmospheric and Climate Research. The model development team consists of Andreas Stohl (who originally wrote FLEXPART), Sabine Eckhardt, Harald Sodemann, and John Burkhart.
+
+FLEXPART is free software released under the GNU General Public License V3.0
+
+
+FLEXPART_WRF
+-------------
+
+FLEXPART v 6.xx was adapted by Jerome Fast of PNNL to work with the Weather Research and Forecast (WRF) model. The source code and utilities provided here
+and based on FLXPART_WRF.  Further details of FLEXPART_WRF can be found in
+the references listed below.
+
+We hope to continue the work started by Jerome Fast and the FLEXPART WRF team
+to make it work easily with WRF. Things that would need immediate attention
+are:
+
+1. Inclusion of spatially varing Map factors
+2. Making Wet deposition work
+3. Making warm restart work
+
+Provided below are some Ruby and NCL scripts that would ease working with
+FLEXPART_WRF input and output. 
+
+Directory Structure
+-----------------
+
+
 FLX_WRF - root of tar file
 
 docs - contains flexpart-wrf.phase?.pdf (3 files - these
@@ -34,3 +64,14 @@ SCEN1      - run_flx.rb
              + to help make production runs
 
 SCEN1/plot/ncl - NCL scripts that I use to make plots
+
+References
+--------------
+
+Homepage of FLEXPART - http://transport.nilu.no/flexpart
+
+Stohl, A., C. Forster, A. Frank, P. Seibert, and G. Wotawa (2005): Technical Note : The Lagrangian particle dispersion model FLEXPART version 6.2. Atmos. Chem. Phys. 5, 2461-2474.
+
+Doran, J.C., J.D. Fast, J.C Barnard, A. Laskin, Y. Desyaterik, M.K. Gilles, and R.J. Hopkins, 2008: Applications of Lagrangian dispersion modeling to the analysis of changes in the specific absorption of elemental carbon.  Atmos. Chem. Phys., 8, 1377-1389.
+
+Fast, J.D., and R.C. Easter, 2006: A Lagrangian particle dispersion model compatible with WRF. 7th WRF Users' Workshop, NCAR, June 19-22, Boulder, CO, p6.2.
