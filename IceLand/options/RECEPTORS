@@ -1,0 +1,31 @@
+********************************************************************************
+*                                                                              *
+*      Input file for the Lagrangian particle dispersion model FLEXPART        *
+*                       Please specify your receptor points                    *
+*     For the receptor points, ground level concentrations are calculated      *
+*                                                                              *
+********************************************************************************
+1.  ----------------  4X,A16
+    R01               NAME OF RECEPTOR POINT
+    RECEPTORNAME
+
+2.  ------.----       4X,F11.4
+        00.7       GEOGRAFICAL LONGITUDE
+    XRECEPTOR 
+
+3.  ------.----       4X,F11.4
+        55.45       GEOGRAFICAL LATITUDE
+    YRECEPTOR  
+================================================================================
+1.  ----------------  4X,A16
+    R02               NAME OF RECEPTOR POINT
+    RECEPTORNAME
+
+2.  ------.----       4X,F11.4
+        00.5       GEOGRAFICAL LONGITUDE
+    XRECEPTOR 
+
+3.  ------.----       4X,F11.4
+        62.4       GEOGRAFICAL LATITUDE
+    YRECEPTOR  
+================================================================================

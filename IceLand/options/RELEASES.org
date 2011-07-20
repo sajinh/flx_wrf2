@@ -1,0 +1,54 @@
+*************************************************************************
+*                                                                       *
+*                                                                       *
+*                                                                       *
+*   Input file for the Lagrangian particle dispersion model FLEXPART    *
+*                        Please select your options                     *
+*                                                                       *
+*                                                                       *
+*                                                                       *
+*************************************************************************
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  1      
+___                        i3    Total number of species emitted
+
+ 15
+___                        i3    Index of species in file SPECIES
+
+=========================================================================
+20110401 060000 
+________ ______            i8,1x,i6 Beginning date and time of release
+
+20110403 060000 
+________ ______            i8,1x,i6 Ending date and time of release
+
+ 141.03 
+____.____                  f9.4  Longitude [DEG] of lower left corner
+
+ 37.42
+____.____                  f9.4  Latitude [DEG] of lower left corner
+
+ 141.04
+____.____                  f9.4  Longitude [DEG] of upper right corner
+
+ 37.43
+____.____                  f9.4  Latitude [DEG] of upper right corner
+
+        1
+_________                  i9    1 for m above ground, 2 for m above sea level
+
+    10.00
+_____.___                  f10.3 Lower z-level (in m agl or m asl)
+ 
+  2000.00
+_____.___                  f10.3 Upper z-level (in m agl or m asl)
+ 
+  100000                
+_________                  i9    Total number of particles to be released
+
+1.0000E00
+_.____E__                  e9.4  Total mass emitted
+
+FKS_RELEASE_SCENARIO1
+________________________________________   character*40 comment
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

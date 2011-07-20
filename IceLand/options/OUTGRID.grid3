@@ -1,0 +1,203 @@
+********************************************************************************
+*                                                                              *
+*      Input file for the Lagrangian particle dispersion model FLEXPART        *
+*                       Please specify your output grid                        *
+*                                                                              *
+********************************************************************************
+
+1.  ------.----       4X,F11.4
+    695000.0000       GEOGRAFICAL LONGITUDE OF LOWER LEFT CORNER OF OUTPUT GRID
+    OUTLONLEFT        (left boundary of the first grid cell - not its centre)
+
+2.  ------.----       4X,F11.4
+    627500.0000       GEOGRAFICAL LATITUDE OF LOWER LEFT CORNER OF OUTPUT GRID
+    OUTLATLOWER       (lower boundary of the first grid cell - not its centre)
+
+3.  -----             4X,I5
+       86             NUMBER OF GRID POINTS IN X DIRECTION (= No. of cells + 1)
+    NUMXGRID
+
+4.  -----             4X,I5
+       86             NUMBER OF GRID POINTS IN Y DIRECTION (= No. of cells + 1)
+    NUMYGRID
+
+5.  ------.---        4X,F10.3
+      2500.000        GRID DISTANCE IN X DIRECTION
+    DXOUTLON
+
+6.  ------.---        4X,F10.3
+      2500.000        GRID DISTANCE IN Y DIRECTION
+    DYOUTLAT
+
+10. -----.-           4X, F7.1
+       15.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+       37.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+       66.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+      110.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+      267.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+      395.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+      579.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+      774.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+      974.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     1178.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     1386.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     1600.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     1818.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     2041.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     2270.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     2504.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     2744.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     2989.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     3242.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     3501.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     3767.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     4040.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     4322.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     4612.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     4911.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     5219.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     5537.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     5867.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     6208.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     6563.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     6932.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     7317.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     7719.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     8141.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     8583.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     9049.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+     9541.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+    10064.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+    10682.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+    11242.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+    11877.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+    12600.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+
+10. -----.-           4X, F7.1
+    13409.0
+    LEVEL 4           HEIGHT OF LEVEL (UPPER BOUNDARY)
+

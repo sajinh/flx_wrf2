@@ -65,6 +65,9 @@ SCEN1      - run_flx.rb
 
 SCEN1/plot/ncl - NCL scripts that I use to make plots
 
+PlotLib_WRF - set the path to this directory as the shell environment
+              variable WRF.
+
 References
 --------------
 
